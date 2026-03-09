@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #0a0a0f;
+}
+
+/* Scrollable containers */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124, 58, 237, 0.5) rgba(0, 0, 0, 0.3);
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.5);
+  border-radius: 2px;
+}
+
+/* Game canvas */
+canvas {
+  display: block;
+}
+
+/* Phaser container */
+#phaser-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Pixel font everywhere */
+.font-game {
+  font-family: 'Press Start 2P', monospace !important;
+  image-rendering: pixelated;
+}
+
+/* Glow text utility */
+.text-glow-cyan {
+  text-shadow: 0 0 10px #00f5ff, 0 0 20px #00f5ff;
+}
+
+.text-glow-gold {
+  text-shadow: 0 0 10px #ffd700, 0 0 20px #ff8800;
+}
+
+.text-glow-red {
+  text-shadow: 0 0 10px #ff0040, 0 0 20px #ff0040;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes slam {
+  0% { transform: scale(1.3) translateX(-50%); opacity: 0; }
+  100% { transform: scale(1) translateX(-50%); opacity: 1; }
+}
+
+@keyframes healthGlow {
+  0%, 100% { box-shadow: 0 0 5px currentColor; }
+  50% { box-shadow: 0 0 20px currentColor, 0 0 40px currentColor; }
+}
+
+/* Boss HP bar animation */
+.boss-hp-fill {
+  transition: width 0.3s ease-out;
+}
+
+/* Damage flash */
+@keyframes damageFlash {
+  0% { background: rgba(255, 0, 64, 0.4); }
+  100% { background: transparent; }
+}
+
+.damage-flash {
+  animation: damageFlash 0.3s ease-out;
+}
+
+/* Neon border pulse */
+@keyframes neonPulse {
+  0%, 100% { border-color: rgba(0, 245, 255, 0.4); }
+  50% { border-color: rgba(0, 245, 255, 1); }
+}
+
+/* Background stars for menu */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* Combat hit effect */
+@keyframes hitEffect {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.1) rotate(2deg); }
+  75% { transform: scale(0.95) rotate(-1deg); }
+  100% { transform: scale(1); }
+}
+
+.hit-effect {
+  animation: hitEffect 0.2s ease-out;
+}
