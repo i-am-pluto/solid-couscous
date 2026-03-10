@@ -60,6 +60,7 @@ interface GameStore {
   setAnswerResult: (r: 'correct' | 'wrong' | null) => void
   toggleInventory: () => void
   resetBattle: () => void
+  grantGear: (gearItems: GearItem[]) => void
 }
 
 const computeTotals = (player: PlayerState): { totalAttack: number; totalDefense: number } => {
@@ -109,6 +110,19 @@ export const useGameStore = create<GameStore>((set, get) => {
     selectWorld: (world) => set({ selectedWorld: world, mode: 'worldmap' }),
 
     selectBoss: (boss) => set({ selectedBoss: boss }),
+
+    // Used by LC sync to bulk-grant gear
+    grantGear: (gearItems: GearItem[]) => {
+      const { player } = get()
+      const existingIds = new Set(player.inventory.map(g => g.id))
+      const newItems = gearItems.filter(g => !existingIds.has(g.id)).map(g => ({ ...g, unlocked: true }))
+      if (newItems.length === 0) return
+      const updatedPlayer = { ...player, inventory: [...player.inventory, ...newItems] }
+      const totals = computeTotals(updatedPlayer)
+      const finalPlayer = { ...updatedPlayer, ...totals }
+      set({ player: finalPlayer })
+      savePlayerLocal(finalPlayer)
+    },
 
     startBattle: (world, boss) => {
       const { player } = get()

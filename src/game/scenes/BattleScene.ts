@@ -99,6 +99,8 @@ export class BattleScene extends Phaser.Scene {
   }
 
   init(data: { boss: Boss; world: World; playerHP: number; playerMaxHP: number; gear: GearItem[] }) {
+    // Guard: if started without data (e.g. during Phaser auto-boot), skip
+    if (!data?.boss) return
     this.boss = data.boss
     this.world = data.world
     this.playerHP = data.playerHP
@@ -118,6 +120,8 @@ export class BattleScene extends Phaser.Scene {
   }
 
   create() {
+    // Guard: boss data not ready (shouldn't happen with BootScene, but safety net)
+    if (!this.boss || !this.world) return
     const { width, height } = this.scale
     this.groundY = height - 120
 

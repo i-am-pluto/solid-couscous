@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import Phaser from 'phaser'
+import { BootScene } from './scenes/BootScene'
 import { BattleScene } from './scenes/BattleScene'
 import { useGameStore } from '../store/gameStore'
 import { eventBus, EVENTS } from './EventBus'
@@ -19,19 +20,24 @@ export function PhaserGame({ onBossDefeated, onPlayerDamaged, onGearNeeded }: Ph
   useEffect(() => {
     if (!containerRef.current || !selectedBoss || !selectedWorld) return
 
-    // Cleanup old game
+    // Cleanup old game instance
     if (gameRef.current) {
       gameRef.current.destroy(true)
       gameRef.current = null
     }
 
+    const w = window.innerWidth
+    const h = window.innerHeight
+
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.CANVAS,
-      width: window.innerWidth,
-      height: window.innerHeight,
+      width: w,
+      height: h,
       parent: containerRef.current,
       backgroundColor: selectedWorld.backgroundColor,
-      scene: [BattleScene],
+      // BootScene is listed first so Phaser auto-starts it (idle).
+      // BattleScene is started manually below with boss data.
+      scene: [BootScene, BattleScene],
       physics: {
         default: 'arcade',
         arcade: { gravity: { x: 0, y: 0 }, debug: false },
@@ -40,40 +46,41 @@ export function PhaserGame({ onBossDefeated, onPlayerDamaged, onGearNeeded }: Ph
       scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: window.innerWidth,
-        height: window.innerHeight,
+        width: w,
+        height: h,
       },
     }
 
-    gameRef.current = new Phaser.Game(config)
+    const game = new Phaser.Game(config)
+    gameRef.current = game
 
-    // Start battle scene with data
+    // Collect all unlocked gear (equipped + inventory)
     const equippedValues = Object.values(player.equippedGear).filter(Boolean) as GearItem[]
     const inventoryUnlocked = player.inventory.filter(g => g.unlocked)
     const allGear = [...new Map([...equippedValues, ...inventoryUnlocked].map(g => [g.id, g])).values()]
 
-    setTimeout(() => {
-      if (!gameRef.current) return
-      gameRef.current.scene.start('BattleScene', {
-        boss: selectedBoss,
-        world: selectedWorld,
-        playerHP: player.hp,
-        playerMaxHP: player.maxHp,
-        gear: allGear,
-      })
-    }, 100)
+    const battleData = {
+      boss: selectedBoss,
+      world: selectedWorld,
+      playerHP: player.hp,
+      playerMaxHP: player.maxHp,
+      gear: allGear,
+    }
+
+    // Wait for Phaser to finish booting, then start BattleScene with data
+    game.events.once(Phaser.Core.Events.READY, () => {
+      game.scene.start('BattleScene', battleData)
+    })
 
     // Event listeners
     const handleBossDefeated = (data: unknown) => {
       const { boss, xpReward } = data as { boss: Boss; xpReward: number }
       onBossDefeated(boss, xpReward)
     }
-
     const handlePlayerDamaged = (data: unknown) => {
       const { amount, fatal } = data as { amount: number; fatal?: boolean }
       onPlayerDamaged(amount, !!fatal)
     }
-
     const handleGearNeeded = (data: unknown) => {
       const { gear } = data as { gear: GearItem }
       onGearNeeded(gear)
